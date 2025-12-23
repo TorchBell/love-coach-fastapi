@@ -37,6 +37,38 @@ class ContextRequest(BaseModel):
     user_message: str
     ai_message: str
 
+class ReportRequest(BaseModel):
+    report_type: str
+    logs: List[dict]
+    statistics: dict
+
+SYSTEM_PROMPTS = {
+    "DIET": "당신은 영양학 전문가입니다. 사용자의 이번 달 식단 기록을 분석하여 영양 밸런스, 칼로리 섭취 패턴, 개선점을 전문적인 시각에서 조언해주세요.",
+    "MUSCLE": "당신은 스포츠 의학 전문가이자 전문 트레이너입니다. 사용자의 이번 달 근력 운동 기록을 분석하여 운동 볼륨, 빈도, 강도 설정을 평가하고 구체적인 피드백을 제공해주세요.",
+    "CARDIO": "당신은 심폐 지구력 전문가입니다. 사용자의 이번 달 유산소 운동 기록을 분석하여 심폐 기능 향상 여부, 칼로리 소모 효율 등을 평가하고 조언해주세요."
+}
+
+@app.post("/report")
+async def generate_report(request: ReportRequest):
+    try:
+        system_prompt = SYSTEM_PROMPTS.get(request.report_type, "당신은 헬스케어 전문가입니다. 사용자의 건강 데이터를 분석해주세요.")
+        
+        user_prompt = f"다음 통계와 로그를 바탕으로 분석 리포트를 작성해주세요.\n\n[통계]\n{request.statistics}\n\n[로그 데이터]\n{request.logs}"
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
+        
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages
+        )
+        
+        return {"report": response.choices[0].message.content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/chat")
 async def chat(request: ChatRequest):
     try:
