@@ -53,7 +53,7 @@ async def generate_report(request: ReportRequest):
     try:
         system_prompt = SYSTEM_PROMPTS.get(request.report_type, "당신은 헬스케어 전문가입니다. 사용자의 건강 데이터를 분석해주세요.")
         
-        user_prompt = f"다음 통계와 로그를 바탕으로 분석 리포트를 작성해주세요.\n\n[통계]\n{request.statistics}\n\n[로그 데이터]\n{request.logs}"
+        user_prompt = f"다음 통계와 로그를 바탕으로 마크다운 형식으로 분석 리포트를 작성해주세요. 표 형태를 적극적으로 사용하세요.\n\n[통계]\n{request.statistics}\n\n[로그 데이터]\n{request.logs}"
         
         messages = [
             {"role": "system", "content": system_prompt},
